@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Disasters{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h1>
+            Active Disasters
+        </h1>
+
+        <p class="text-muted">
+            Current disaster situations reported in the system.
+        </p>
+
+    </div>
+
+    <a
+        href="/report-disaster"
+        class="btn btn-danger">
+
+        Report Disaster
+
+    </a>
+
+</div>
+
+
+<div class="table-responsive">
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>ID</th>
+                <th>Disaster</th>
+                <th>Location</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Reported</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            {% for disaster in disasters %}
+
+            <tr>
+
+                <td>
+                    {{ disaster.id }}
+                </td>
+
+                <td>
+                    {{ disaster.type }}
+                </td>
+
+                <td>
+                    {{ disaster.location }}
+                </td>
+
+                <td>
+
+                    {% if disaster.severity == "CRITICAL" %}
+
+                        <span class="badge bg-danger">
+                            CRITICAL
+                        </span>
+
+                    {% elif disaster.severity == "HIGH" %}
+
+                        <span class="badge bg-warning text-dark">
+                            HIGH
+                        </span>
+
+                    {% elif disaster.severity == "MEDIUM" %}
+
+                        <span class="badge bg-info">
+                            MEDIUM
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-success">
+                            LOW
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+                    {{ disaster.status }}
+                </td>
+
+                <td>
+                    {{ disaster.created_at }}
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="6" class="text-center py-4">
+
+                    No active disasters reported.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
