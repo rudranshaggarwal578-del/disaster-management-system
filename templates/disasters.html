@@ -40,6 +40,7 @@
                 <th>ID</th>
                 <th>Disaster</th>
                 <th>Location</th>
+                <th>Coordinate</th>
                 <th>Severity</th>
                 <th>Status</th>
                 <th>Reported</th>
@@ -60,11 +61,15 @@
                 </td>
 
                 <td>
-                    {{ disaster.type }}
+                    {{ disaster.disaster_type }}
                 </td>
 
                 <td>
                     {{ disaster.location }}
+                </td>
+
+                <td>
+                    {{ disaster.latitude , disaster.longitude}}
                 </td>
 
                 <td>

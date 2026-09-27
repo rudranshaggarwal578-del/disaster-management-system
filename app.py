@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+from database.db import get_db
 
 app = Flask(__name__)
 
@@ -121,16 +122,21 @@ def report_disaster():
 
 @app.route("/disasters")
 def disasters():
+    db = get_db()
 
-    # Temporary empty list
-    # Later this will come from SQLite
+    cursor = db.cursor()
 
-    disasters = []
+    cursor.execute("""
+        SELECT *
+        FROM disasters
+        ORDER BY created_at DESC
+    """)
 
-    return render_template(
-        "disasters.html",
-        disasters=disasters
-    )
+    disasters = cursor.fetchall()
+
+    db.close()
+
+    return render_template("disasters.html", disasters=disasters)
 
 
 # =========================
