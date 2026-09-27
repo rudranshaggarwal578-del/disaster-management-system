@@ -87,29 +87,55 @@ def report_disaster():
 
     if request.method == "POST":
 
-        disaster_type = request.form["type"]
-        description = request.form["description"]
-        location = request.form["location"]
-
+        # Get form data
+        disaster_type = request.form.get("type")
+        description = request.form.get("description")
+        location = request.form.get("location")
         latitude = request.form.get("latitude")
         longitude = request.form.get("longitude")
 
-        # Image will be handled later
-        image = request.files.get("image")
+        # Basic validation
+        if not disaster_type or not location:
+            flash("Disaster type and location are required.", "danger")
+            return redirect(url_for("report_disaster"))
 
-        # Temporary logic
-        # Database storage will be added later
+        # Convert coordinates to numbers
+        try:
+            latitude = float(latitude) if latitude else None
+            longitude = float(longitude) if longitude else None
 
-        print("Disaster Type:", disaster_type)
-        print("Description:", description)
-        print("Location:", location)
-        print("Latitude:", latitude)
-        print("Longitude:", longitude)
+        except ValueError:
+            flash("Invalid latitude or longitude.", "danger")
+            return redirect(url_for("report_disaster"))
 
-        flash(
-            "Disaster report submitted successfully!",
-            "success"
-        )
+        # Connect to database
+        db = get_db()
+
+        # Insert disaster report
+        db.execute("""
+            INSERT INTO disasters (
+                disaster_type,
+                description,
+                location,
+                latitude,
+                longitude
+            )
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            disaster_type,
+            description,
+            location,
+            latitude,
+            longitude
+        ))
+
+        # Save changes
+        db.commit()
+
+        # Close database connection
+        db.close()
+
+        flash("Disaster report submitted successfully!", "success")
 
         return redirect(url_for("disasters"))
 
