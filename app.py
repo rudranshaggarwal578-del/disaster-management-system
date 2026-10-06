@@ -1,6 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from database.db import get_db
 from werkzeug.security import generate_password_hash, check_password_hash
+from analytics.disaster_analysis import (
+    get_disaster_data,
+    get_summary,
+    get_disaster_type_counts,
+    get_severity_counts
+)
 
 app = Flask(__name__)
 
@@ -470,6 +476,31 @@ def volunteer_dashboard():
         assignments=assignments
     )
 
+@app.route("/analytics")
+def analytics():
+
+    if "user_id" not in session:
+        flash("Please login first.", "warning")
+        return redirect(url_for("login"))
+
+    db = get_db()
+
+    df = get_disaster_data(db)
+
+    summary = get_summary(df)
+
+    type_counts = get_disaster_type_counts(df)
+
+    severity_counts = get_severity_counts(df)
+
+    db.close()
+
+    return render_template(
+        "analytics.html",
+        summary=summary,
+        type_counts=type_counts.to_dict("records"),
+        severity_counts=severity_counts.to_dict("records")
+    )
 
 # LOGOUT ROUTE
 

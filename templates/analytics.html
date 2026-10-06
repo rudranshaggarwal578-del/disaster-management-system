@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Disaster Analytics{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2 class="mb-4">Disaster Analytics Dashboard</h2>
+
+
+    <!-- Summary Cards -->
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Total Reports</h6>
+                    <h2>{{ summary.total }}</h2>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Verified</h6>
+                    <h2>{{ summary.verified }}</h2>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Resolved</h6>
+                    <h2>{{ summary.resolved }}</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Reported</h6>
+                    <h2>{{ summary.reported }}</h2>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Assigned</h6>
+                    <h2>{{ summary.assigned }}</h2>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Responding</h6>
+                    <h2>{{ summary.responding }}</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Disaster Types -->
+
+    <div class="card mt-4">
+
+        <div class="card-body">
+
+            <h4>Disaster Types</h4>
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+                        <th>Disaster Type</th>
+                        <th>Count</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for item in type_counts %}
+
+                    <tr>
+
+                        <td>
+                            {{ item.disaster_type }}
+                        </td>
+
+                        <td>
+                            {{ item.count }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- Severity -->
+
+    <div class="card mt-4">
+
+        <div class="card-body">
+
+            <h4>Severity Distribution</h4>
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+                        <th>Severity</th>
+                        <th>Count</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for item in severity_counts %}
+
+                    <tr>
+
+                        <td>
+                            {{ item.severity }}
+                        </td>
+
+                        <td>
+                            {{ item.count }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
