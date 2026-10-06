@@ -5,6 +5,15 @@
 {% block content %}
 
 <div class="mb-4">
+    <h2>Welcome, {{ session["user_name"] }}</h2>
+
+    <p class="text-muted">
+        Role:
+        <strong>{{ session["user_role"]|capitalize }}</strong>
+    </p>
+</div>
+
+<div class="mb-4">
 
     <h1>
         Disaster Management Dashboard

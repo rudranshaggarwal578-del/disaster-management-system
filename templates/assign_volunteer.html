@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Volunteer{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2 class="mb-4">Assign Volunteer</h2>
+
+    {% if disasters %}
+
+        {% for disaster in disasters %}
+
+        <div class="card mb-4">
+
+            <div class="card-body">
+
+                <h5 class="card-title">
+                    {{ disaster["disaster_type"] }}
+                </h5>
+
+                <p>
+                    <strong>Location:</strong>
+                    {{ disaster["location"] }}
+                </p>
+
+                <p>
+                    <strong>Description:</strong>
+                    {{ disaster["description"] }}
+                </p>
+
+                <p>
+                    <strong>Severity:</strong>
+                    {{ disaster["severity"] }}
+                </p>
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'assign_volunteer',
+                        disaster_id=disaster['id']
+                    ) }}"
+                >
+
+                    <label class="form-label">
+                        Select Volunteer
+                    </label>
+
+                    <select
+                        name="volunteer_id"
+                        class="form-select mb-3"
+                        required
+                    >
+
+                        <option value="">
+                            -- Select Volunteer --
+                        </option>
+
+                        {% for volunteer in volunteers %}
+
+                        <option value="{{ volunteer['id'] }}">
+                            {{ volunteer['name'] }}
+                            -
+                            {{ volunteer['email'] }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Assign Volunteer
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="alert alert-info">
+            There are no verified disasters waiting for assignment.
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

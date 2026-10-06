@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Disasters{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2 class="mb-4">Disaster Verification</h2>
+
+    {% if disasters %}
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-hover">
+
+            <thead class="table-dark">
+
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Location</th>
+                    <th>Severity</th>
+                    <th>Reported At</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for disaster in disasters %}
+
+                <tr>
+
+                    <td>{{ disaster["id"] }}</td>
+
+                    <td>{{ disaster["disaster_type"] }}</td>
+
+                    <td>{{ disaster["description"] }}</td>
+
+                    <td>{{ disaster["location"] }}</td>
+
+                    <td>
+                        <span class="badge bg-warning text-dark">
+                            {{ disaster["severity"] }}
+                        </span>
+                    </td>
+
+                    <td>{{ disaster["created_at"] }}</td>
+
+                    <td>
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('verify_disaster', disaster_id=disaster['id']) }}"
+                            class="d-inline"
+                        >
+
+                            <input
+                                type="hidden"
+                                name="action"
+                                value="verify"
+                            >
+
+                            <button
+                                type="submit"
+                                class="btn btn-success btn-sm"
+                            >
+                                Verify
+                            </button>
+
+                        </form>
+
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('verify_disaster', disaster_id=disaster['id']) }}"
+                            class="d-inline"
+                        >
+
+                            <input
+                                type="hidden"
+                                name="action"
+                                value="reject"
+                            >
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger btn-sm"
+                            >
+                                Reject
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="alert alert-info">
+        There are no pending disaster reports.
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

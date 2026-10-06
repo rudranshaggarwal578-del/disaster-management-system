@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Volunteer Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="mb-4">
+        <h2>Volunteer Dashboard</h2>
+
+        <p class="text-muted">
+            Welcome, {{ session["user_name"] }}
+        </p>
+    </div>
+
+
+    {% if assignments %}
+
+        {% for assignment in assignments %}
+
+        <div class="card mb-4">
+
+            <div class="card-body">
+
+                <h5 class="card-title">
+                    {{ assignment["disaster_type"] }}
+                </h5>
+
+                <p>
+                    <strong>Location:</strong>
+                    {{ assignment["location"] }}
+                </p>
+
+                <p>
+                    <strong>Description:</strong>
+                    {{ assignment["description"] }}
+                </p>
+
+                <p>
+                    <strong>Severity:</strong>
+
+                    {% if assignment["severity"] == "Critical" %}
+                        <span class="badge bg-danger">
+                            Critical
+                        </span>
+
+                    {% elif assignment["severity"] == "High" %}
+                        <span class="badge bg-warning text-dark">
+                            High
+                        </span>
+
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            {{ assignment["severity"] }}
+                        </span>
+                    {% endif %}
+
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ assignment["status"] }}
+                </p>
+
+                <p>
+                    <strong>Assigned At:</strong>
+                    {{ assignment["assigned_at"] }}
+                </p>
+
+
+                {% if assignment["status"] == "Assigned" %}
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'start_response',
+                        assignment_id=assignment['assignment_id']
+                    ) }}"
+                >
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Start Response
+                    </button>
+
+                </form>
+
+                {% elif assignment["status"] == "Responding" %}
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'complete_response',
+                        assignment_id=assignment['assignment_id']
+                    ) }}"
+                >
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                    >
+                        Mark Resolved
+                    </button>
+
+                </form>
+
+                {% elif assignment["status"] == "Resolved" %}
+
+                    <span class="badge bg-success">
+                        Response Completed
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="alert alert-info">
+            You currently have no disaster assignments.
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
