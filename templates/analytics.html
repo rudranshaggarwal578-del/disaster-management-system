@@ -3,6 +3,7 @@
 {% block title %}Disaster Analytics{% endblock %}
 
 {% block content %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <div class="container">
 
@@ -78,6 +79,72 @@
 
     </div>
 
+    <div class="row mt-4">
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Average Response Time</h5>
+    
+                    <h3>
+                        {% if average_times.average_response_time is not none %}
+                            {{ "%.2f"|format(average_times.average_response_time) }} min
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h3>
+    
+                    <p class="text-muted">
+                        Time taken by volunteers to reach the disaster
+                    </p>
+                </div>
+            </div>
+        </div>
+    
+    
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Average Resolution Time</h5>
+    
+                    <h3>
+                        {% if average_times.average_resolution_time is not none %}
+                            {{ "%.2f"|format(average_times.average_resolution_time) }} min
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h3>
+    
+                    <p class="text-muted">
+                        Time taken to complete the response
+                    </p>
+                </div>
+            </div>
+        </div>
+    
+    
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Average Incident Duration</h5>
+    
+                    <h3>
+                        {% if average_times.average_incident_duration is not none %}
+                            {{ "%.2f"|format(average_times.average_incident_duration) }} min
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h3>
+    
+                    <p class="text-muted">
+                        Time from report to resolution
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
 
     <!-- Disaster Types -->
 
@@ -86,6 +153,8 @@
         <div class="card-body">
 
             <h4>Disaster Types</h4>
+
+            <div id="disasterTypeChart" style="width:100%; height:400px;"></div>
 
             <table class="table">
 
@@ -133,6 +202,8 @@
 
             <h4>Severity Distribution</h4>
 
+            <div id="severityChart" style="width:100%; height:400px;"></div>
+
             <table class="table">
 
                 <thead>
@@ -151,7 +222,7 @@
                     <tr>
 
                         <td>
-                            {{ item.severity }}
+                            {{ item.ai_severity }}
                         </td>
 
                         <td>
@@ -171,5 +242,110 @@
     </div>
 
 </div>
+
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+        <h4 class="card-title">Disaster Location Map</h4>
+
+        <div
+            id="disasterMap"
+            style="height: 500px; width: 100%;"
+        ></div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const mapdata = {{ map_data | tojson }};
+    console.log("Disaster map data:", mapdata);
+
+    const map = L.map("disasterMap").setView(
+        [30.7333, 76.7794],
+        7
+    );
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            attribution: "&copy; OpenStreetMap contributors"
+        }
+    ).addTo(map);
+
+    mapdata.forEach(disaster => {
+
+        const marker = L.marker([
+            disaster.latitude,
+            disaster.longitude
+        ]).addTo(map);
+
+        marker.bindPopup(`
+            <strong>${disaster.disaster_type}</strong><br>
+            Severity: ${disaster.ai_severity}<br>
+            Status: ${disaster.status}<br>
+            Location: ${disaster.location}
+        `);
+    });
+</script>
+
+<script>
+
+    const typeData = {{ type_counts | tojson }};
+
+    const typeNames = typeData.map(
+        item => item.disaster_type
+    );
+
+    const typeCounts = typeData.map(
+        item => item.count
+    );
+
+
+    Plotly.newPlot(
+        "disasterTypeChart",
+        [
+            {
+                x: typeNames,
+                y: typeCounts,
+                type: "bar"
+            }
+        ],
+        {
+            title: "Disasters by Type",
+            xaxis: {
+                title: "Disaster Type"
+            },
+            yaxis: {
+                title: "Number of Reports"
+            }
+        }
+    );
+
+
+    const severityData = {{ severity_counts | tojson }};
+
+    const severityNames = severityData.map(
+        item => item.ai_severity
+    );
+
+    const severityCounts = severityData.map(
+        item => item.count
+    );
+
+
+    Plotly.newPlot(
+        "severityChart",
+        [
+            {
+                labels: severityNames,
+                values: severityCounts,
+                type: "pie"
+            }
+        ],
+        {
+            title: "Severity Distribution"
+        }
+    );
+
+</script>
 
 {% endblock %}

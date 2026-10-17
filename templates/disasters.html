@@ -42,6 +42,7 @@
                 <th>Location</th>
                 <th>Coordinate</th>
                 <th>Severity</th>
+                <th>AI Prediction</th>
                 <th>Status</th>
                 <th>Reported</th>
 
@@ -74,19 +75,19 @@
 
                 <td>
 
-                    {% if disaster.severity == "CRITICAL" %}
+                    {% if disaster.ai_severity == "Critical" %}
 
                         <span class="badge bg-danger">
                             CRITICAL
                         </span>
 
-                    {% elif disaster.severity == "HIGH" %}
+                    {% elif disaster.ai_severity == "High" %}
 
                         <span class="badge bg-warning text-dark">
                             HIGH
                         </span>
 
-                    {% elif disaster.severity == "MEDIUM" %}
+                    {% elif disaster.ai_severity == "Medium" %}
 
                         <span class="badge bg-info">
                             MEDIUM
@@ -100,6 +101,10 @@
 
                     {% endif %}
 
+                </td>
+
+                <td>
+                     {{ disaster.ai_confidence }}
                 </td>
 
                 <td>

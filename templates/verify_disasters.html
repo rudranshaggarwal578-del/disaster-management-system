@@ -22,6 +22,8 @@
                     <th>Description</th>
                     <th>Location</th>
                     <th>Severity</th>
+                    <th>AI Prediction</th>
+                    <th>AI Confidence</th>
                     <th>Reported At</th>
                     <th>Action</th>
                 </tr>
@@ -46,6 +48,20 @@
                         <span class="badge bg-warning text-dark">
                             {{ disaster["severity"] }}
                         </span>
+                    </td>
+
+                    <td>
+                        <span class="badge bg-info text-dark">
+                            {{ disaster["ai_severity"] or "N/A" }}
+                        </span>
+                    </td>
+                    
+                    <td>
+                        {% if disaster["ai_confidence"] is not none %}
+                            {{ "%.1f"|format(disaster["ai_confidence"]) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
                     </td>
 
                     <td>{{ disaster["created_at"] }}</td>

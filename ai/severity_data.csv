@@ -1,0 +1,31 @@
+description,disaster_type,severity
+"Heavy rain has caused water to enter several houses and roads are flooded",Flood,High
+"Water level is rising rapidly and many families need evacuation",Flood,Critical
+"Minor water accumulation on the road with no major damage",Flood,Low
+"Flood water has entered houses and people are trapped",Flood,Critical
+"River has overflowed and several villages are affected",Flood,High
+"Small amount of water collected near the roadside",Flood,Low
+"Strong earthquake has damaged buildings and people are injured",Earthquake,Critical
+"Earthquake caused cracks in some walls but no injuries",Earthquake,Medium
+"Minor tremors felt with no visible damage",Earthquake,Low
+"Major buildings have collapsed after the earthquake",Earthquake,Critical
+"Several buildings are damaged and people need assistance",Earthquake,High
+"Small cracks appeared in one building",Earthquake,Medium
+"Large fire has spread to several buildings",Fire,Critical
+"Fire has damaged one building and people are being evacuated",Fire,High
+"Small kitchen fire was quickly controlled",Fire,Low
+"Fire is spreading rapidly and firefighters are required",Fire,Critical
+"Smoke and flames are affecting a large area",Fire,High
+"Small fire in a garbage area with no injuries",Fire,Low
+"Landslide has blocked the main road and vehicles cannot pass",Landslide,High
+"Large landslide has buried houses and people are trapped",Landslide,Critical
+"Small rocks have fallen onto the roadside",Landslide,Low
+"Landslide has damaged several roads and buildings",Landslide,High
+"Minor soil movement observed near the road",Landslide,Low
+"Major landslide has isolated several villages",Landslide,Critical
+"Strong cyclone has damaged houses and electricity lines",Cyclone,High
+"Severe cyclone has caused widespread destruction and injuries",Cyclone,Critical
+"Light cyclone with strong winds but no major damage",Cyclone,Low
+"Storm has damaged roofs and trees have fallen",Storm,High
+"Strong storm has injured people and damaged buildings",Storm,Critical
+"Small storm with heavy wind but no significant damage",Storm,Low

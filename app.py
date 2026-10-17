@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from database.db import get_db
 from werkzeug.security import generate_password_hash, check_password_hash
-from analytics.disaster_analysis import (
-    get_disaster_data,
-    get_summary,
-    get_disaster_type_counts,
-    get_severity_counts
+from analytics.disaster_analysis import ( get_disaster_data, get_summary, get_disaster_type_counts, get_severity_counts, calculate_response_times,
+    get_average_times, get_map_data
 )
+from ai.severity_predictor import predict_severity
+from ai.duplicate_detector import find_duplicate
 
 app = Flask(__name__)
 
@@ -28,7 +27,7 @@ def role_required(role):
 
 @app.route("/")
 def home():
-    return render_template("dashboard.html")
+    return render_template("welcome.html")
 
 # LOGIN ROUTE
 
@@ -170,8 +169,16 @@ def dashboard():
     if "user_id" not in session:
         flash("Please login to access the dashboard.", "warning")
         return redirect(url_for("login"))
+    
+    db = get_db()
+    
+    df = get_disaster_data(db)
+    summary = get_summary(df)
 
-    return render_template("dashboard.html")
+
+    return render_template(
+        "dashboard.html",
+        summary=summary)
 
 # DISASTER REPORT ROUTE
 
@@ -197,12 +204,47 @@ def report_disaster():
 
         # Convert coordinates to numbers
         try:
-            latitude = float(latitude) if latitude else None
-            longitude = float(longitude) if longitude else None
+            latitude = float(latitude) 
+            longitude = float(longitude)
 
         except ValueError:
             flash("Invalid latitude or longitude.", "danger")
             return redirect(url_for("report_disaster"))
+
+        if not(
+            -90<= latitude <= 90
+            and -180 <= longitude <= 180):
+            flash( "The selected coordinates are outside valid geographic ranges.", "danger")
+            return redirect(url_for("report_disaster"))
+
+        # Find possible duplicate reports
+        db = get_db()
+        
+        existing_reports = db.execute("""
+            SELECT
+                id,
+                disaster_type,
+                description,
+                location
+            FROM disasters
+            WHERE status != 'Rejected'
+        """).fetchall()
+        
+        duplicate_flag, duplicate_of, duplicate_similarity = find_duplicate(
+            disaster_type,
+            description,
+            location,
+            existing_reports
+        )
+
+
+        
+        # AI severity prediction
+
+        predicted_severity, ai_confidence = predict_severity(
+            disaster_type,
+            description or ""
+        )
 
         # Connect to database
         db = get_db()
@@ -215,25 +257,46 @@ def report_disaster():
                 description,
                 location,
                 latitude,
-                longitude
+                longitude,
+                ai_severity,
+                ai_confidence,
+                duplicate_flag,
+                duplicate_of,
+                duplicate_similarity
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             session["user_id"],
             disaster_type,
             description,
             location,
             latitude,
-            longitude
+            longitude,
+            predicted_severity,
+            ai_confidence,
+            1 if duplicate_flag else 0,
+            duplicate_of,
+            duplicate_similarity
         ))
-
-        # Save changes
         db.commit()
-
-        # Close database connection
         db.close()
 
-        flash("Disaster report submitted successfully!", "success")
+        if duplicate_flag:
+            flash(
+                f"Report submitted. AI predicted severity: "
+                f"{predicted_severity} ({ai_confidence:.1f}% confidence). "
+                f"Possible duplicate detected with report #{duplicate_of} "
+                f"({duplicate_similarity:.1f}% similarity).",
+                "warning"
+            )
+        else:
+            flash(
+                f"Disaster report submitted successfully. "
+                f"AI predicted severity: {predicted_severity} "
+                f"({ai_confidence:.1f}% confidence). "
+                f"No likely duplicate detected.",
+                "success"
+            )
 
         return redirect(url_for("disasters"))
 
@@ -451,8 +514,8 @@ def volunteer_dashboard():
             d.disaster_type,
             d.description,
             d.location,
-            d.severity,
-            d.status
+            d.ai_severity,
+            da.status
 
         FROM disaster_assignments da
 
@@ -476,6 +539,128 @@ def volunteer_dashboard():
         assignments=assignments
     )
 
+@app.route(
+    "/start-response/<int:assignment_id>",
+    methods=["POST"]
+)
+def start_response(assignment_id):
+
+    if "user_id" not in session:
+        flash("Please login first.", "warning")
+        return redirect(url_for("login"))
+
+    if not role_required("volunteer"):
+        flash("Access denied.", "danger")
+        return redirect(url_for("dashboard"))
+
+    db = get_db()
+
+    try:
+        # Verify that this assignment belongs to the logged-in volunteer
+        assignment = db.execute("""
+            SELECT da.id
+            FROM disaster_assignments da
+            JOIN volunteers v
+                ON da.volunteer_id = v.id
+            WHERE da.id = ?
+              AND v.user_id = ?
+        """, (
+            assignment_id,
+            session["user_id"]
+        )).fetchone()
+
+        if assignment is None:
+            flash("Assignment not found.", "danger")
+            return redirect(url_for("volunteer_dashboard"))
+
+        # Change status only if the assignment is currently Assigned
+        cursor = db.execute("""
+            UPDATE disaster_assignments
+            SET status = 'Responding',
+                arrived_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+              AND status = 'Assigned'
+        """, (assignment_id,))
+
+        db.commit()
+
+        if cursor.rowcount == 1:
+            flash(
+                "Response started successfully.",
+                "success"
+            )
+        else:
+            flash(
+                "This assignment cannot be started in its current state.",
+                "warning"
+            )
+
+    finally:
+        db.close()
+
+    return redirect(url_for("volunteer_dashboard"))
+
+@app.route(
+    "/complete-response/<int:assignment_id>",
+    methods=["POST"]
+)
+def complete_response(assignment_id):
+
+    if "user_id" not in session:
+        flash("Please login first.", "warning")
+        return redirect(url_for("login"))
+
+    if not role_required("volunteer"):
+        flash("Access denied.", "danger")
+        return redirect(url_for("dashboard"))
+
+    db = get_db()
+
+    try:
+        # Verify assignment ownership
+        assignment = db.execute("""
+            SELECT da.id
+            FROM disaster_assignments da
+            JOIN volunteers v
+                ON da.volunteer_id = v.id
+            WHERE da.id = ?
+              AND v.user_id = ?
+        """, (
+            assignment_id,
+            session["user_id"]
+        )).fetchone()
+
+        if assignment is None:
+            flash("Assignment not found.", "danger")
+            return redirect(url_for("volunteer_dashboard"))
+
+        # Mark the assignment as resolved
+        cursor = db.execute("""
+            UPDATE disaster_assignments
+            SET status = 'Resolved',
+                completed_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+              AND status = 'Responding'
+        """, (assignment_id,))
+
+        db.commit()
+
+        if cursor.rowcount == 1:
+            flash(
+                "Response completed successfully.",
+                "success"
+            )
+        else:
+            flash(
+                "Start the response before marking it resolved.",
+                "warning"
+            )
+
+    finally:
+        db.close()
+
+    return redirect(url_for("volunteer_dashboard"))
+
 @app.route("/analytics")
 def analytics():
 
@@ -487,11 +672,13 @@ def analytics():
 
     df = get_disaster_data(db)
 
+    df = calculate_response_times(df)
+    map_data = get_map_data(df)
+
     summary = get_summary(df)
-
     type_counts = get_disaster_type_counts(df)
-
     severity_counts = get_severity_counts(df)
+    average_times = get_average_times(df)
 
     db.close()
 
@@ -499,7 +686,9 @@ def analytics():
         "analytics.html",
         summary=summary,
         type_counts=type_counts.to_dict("records"),
-        severity_counts=severity_counts.to_dict("records")
+        severity_counts=severity_counts.to_dict("records"),
+        average_times=average_times,
+        map_data=map_data
     )
 
 # LOGOUT ROUTE

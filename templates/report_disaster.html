@@ -100,53 +100,65 @@
                     <div class="mb-3">
 
                         <label class="form-label">
-                            Location
+                            Select Disaster Location on Map
+                        </label>
+
+                        <div id="reportMap"
+                            style="height: 400px;
+                            width: 100%;
+                            border-radius: 10px;
+                            border: 1px solid #ccc;">
+                        </div>
+
+                        <small class="text-muted d-block mt-2">
+                            Click on the map to select the disaster location.
+                            You can drag the marker to adjust it.
+                        </small>
+                        
+                        <p id="selectedCoordinates" class="mt-2">
+                            No location selected.
+                        </p>
+                    
+
+                    </div>
+
+
+                    <!-- Location Name -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Location Name or Landmark
                         </label>
 
                         <input
                             type="text"
                             name="location"
+                            id="location"
                             class="form-control"
-                            placeholder="Enter location"
+                            placeholder="Enter village, city, road, or landmark"
                             required
                         >
 
                     </div>
 
 
-                    <!-- Latitude -->
+                    <!-- Hidden coordinate -->
 
                     <div class="mb-3">
 
-                        <label class="form-label">
-                            Latitude
-                        </label>
-
                         <input
-                            type="number"
-                            step="any"
+                            type="hidden"
                             name="latitude"
-                            class="form-control"
-                            placeholder="Example: 29.9457"
+                            id="latitude"
+                            required
                         >
-
-                    </div>
-
-
-                    <!-- Longitude -->
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            Longitude
-                        </label>
-
+                        
                         <input
-                            type="number"
-                            step="any"
+                            type="hidden"
                             name="longitude"
-                            class="form-control"
-                            placeholder="Example: 78.1642"
+                            id="longitude"
+                            required
                         >
 
                     </div>
@@ -168,6 +180,7 @@
                         >
 
                     </div>
+                    
 
 
                     <button
@@ -196,5 +209,121 @@
     </div>
 
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Create the map
+    const reportMap = L.map("reportMap").setView(
+        [30.7333, 76.7794],
+        7
+    );
+
+    // Add OpenStreetMap tiles
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            attribution: "&copy; OpenStreetMap contributors",
+            maxZoom: 19
+        }
+    ).addTo(reportMap);
+
+    let selectedMarker = null;
+
+    const latitudeInput =
+        document.getElementById("latitude");
+
+    const longitudeInput =
+        document.getElementById("longitude");
+
+    const coordinatesDisplay =
+        document.getElementById("selectedCoordinates");
+
+    // Update coordinates when the user selects a point
+    function updateSelectedLocation(lat, lng) {
+
+        latitudeInput.value = lat.toFixed(7);
+        longitudeInput.value = lng.toFixed(7);
+
+        coordinatesDisplay.textContent =
+            "Selected coordinates: " +
+            lat.toFixed(6) + ", " +
+            lng.toFixed(6);
+    }
+
+    // Create or move the marker
+    function placeMarker(latlng) {
+
+        if (selectedMarker) {
+
+            selectedMarker.setLatLng(latlng);
+
+        } else {
+
+            selectedMarker = L.marker(latlng, {
+                draggable: true
+            }).addTo(reportMap);
+
+            // Update coordinates when marker is dragged
+            selectedMarker.on("dragend", function (event) {
+
+                const position =
+                    event.target.getLatLng();
+
+                updateSelectedLocation(
+                    position.lat,
+                    position.lng
+                );
+
+            });
+        }
+
+        updateSelectedLocation(
+            latlng.lat,
+            latlng.lng
+        );
+    }
+
+    // User clicks anywhere on the map
+    reportMap.on("click", function (event) {
+
+        placeMarker(event.latlng);
+
+    });
+
+    // Ensure the map renders correctly
+    setTimeout(function () {
+        reportMap.invalidateSize();
+    }, 200);
+
+    const reportForm = document.querySelector(
+    'form[action="/report-disaster"]'
+);
+
+reportForm.addEventListener("submit", function (event) {
+
+    if (
+        latitudeInput.value === "" ||
+        longitudeInput.value === ""
+    ) {
+
+        event.preventDefault();
+
+        alert(
+            "Please select the disaster location on the map."
+        );
+
+        document.getElementById("reportMap").scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+
+});  
+
+});
+</script>
 
 {% endblock %}

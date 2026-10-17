@@ -40,19 +40,19 @@
                 <p>
                     <strong>Severity:</strong>
 
-                    {% if assignment["severity"] == "Critical" %}
+                    {% if assignment["ai_severity"] == "Critical" %}
                         <span class="badge bg-danger">
                             Critical
                         </span>
 
-                    {% elif assignment["severity"] == "High" %}
+                    {% elif assignment["ai_severity"] == "High" %}
                         <span class="badge bg-warning text-dark">
                             High
                         </span>
 
                     {% else %}
                         <span class="badge bg-secondary">
-                            {{ assignment["severity"] }}
+                            {{ assignment["ai_severity"] }}
                         </span>
                     {% endif %}
 
