@@ -22,9 +22,9 @@
                     <th>Description</th>
                     <th>Location</th>
                     <th>Severity</th>
-                    <th>AI Prediction</th>
                     <th>AI Confidence</th>
                     <th>Reported At</th>
+                    <th>Duplicate Status</th>
                     <th>Action</th>
                 </tr>
 
@@ -46,15 +46,11 @@
 
                     <td>
                         <span class="badge bg-warning text-dark">
-                            {{ disaster["severity"] }}
+                            {{ disaster["ai_severity"] }}
                         </span>
                     </td>
 
-                    <td>
-                        <span class="badge bg-info text-dark">
-                            {{ disaster["ai_severity"] or "N/A" }}
-                        </span>
-                    </td>
+                    
                     
                     <td>
                         {% if disaster["ai_confidence"] is not none %}
@@ -65,6 +61,23 @@
                     </td>
 
                     <td>{{ disaster["created_at"] }}</td>
+
+                    <td>
+                        {% if disaster["duplicate_flag"] == 1 %}
+                            <span class="badge bg-danger">
+                                Possible Duplicate
+                            </span>
+                            <br>
+                            <small>
+                                Report #{{ disaster["duplicate_of"] }}
+                                ({{ "%.1f"|format(disaster["duplicate_similarity"]) }}%)
+                            </small>
+                        {% else %}
+                            <span class="badge bg-success">
+                                No Duplicate Detected
+                            </span>
+                        {% endif %}
+                    </td>
 
                     <td>
 

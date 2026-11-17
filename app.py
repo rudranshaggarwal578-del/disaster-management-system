@@ -237,6 +237,11 @@ def report_disaster():
             existing_reports
         )
 
+        print("\n========== DUPLICATE DETECTION ==========")
+        print("Duplicate Flag:", duplicate_flag)
+        print("Duplicate Report ID:", duplicate_of)
+        print("Similarity:", duplicate_similarity)
+        print("=========================================\n")
 
         
         # AI severity prediction
@@ -655,7 +660,6 @@ def complete_response(assignment_id):
                 "Start the response before marking it resolved.",
                 "warning"
             )
-
     finally:
         db.close()
 
@@ -695,11 +699,8 @@ def analytics():
 
 @app.route("/logout")
 def logout():
-
     session.clear()
-
     flash("You have been logged out.", "info")
-
     return redirect(url_for("login"))
 
 # RUN APPLICATION
