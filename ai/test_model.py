@@ -1,49 +1,50 @@
 import joblib
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix
+)
 
 # Load trained model
 model = joblib.load("ai/severity_model.pkl")
 
+# Load dataset
+data = pd.read_csv("ai/severity_data.csv")
 
-def predict_severity(disaster_type, description):
-    text = disaster_type + " " + description
+# Prepare input
+X = (
+    data["disaster_type"].astype(str) + " " +
+    data["description"].astype(str)
+)
 
-    prediction = model.predict([text])[0]
+y = data["severity"]
 
-    probabilities = model.predict_proba([text])[0]
-    confidence = max(probabilities) * 100
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=42,
+    stratify=y
+)
 
-    return prediction, confidence
+# Predict test data
+y_pred = model.predict(X_test)
 
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
 
-# Test cases
-tests = [
-    (
-        "Flood",
-        "Flood water has entered several houses and people are trapped."
-    ),
-    (
-        "Fire",
-        "Small fire in a garbage area with no injuries."
-    ),
-    (
-        "Earthquake",
-        "Major buildings have collapsed and many people are injured."
-    ),
-    (
-        "Landslide",
-        "Small rocks have fallen onto the roadside."
-    )
-]
+print("\n========== MODEL EVALUATION ==========")
 
+print("Accuracy:", round(accuracy * 100, 2), "%")
 
-for disaster_type, description in tests:
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
 
-    severity, confidence = predict_severity(
-        disaster_type,
-        description
-    )
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
 
-    print("\nDisaster:", disaster_type)
-    print("Description:", description)
-    print("Predicted Severity:", severity)
-    print("Confidence:", round(confidence, 2), "%")
+print("======================================")
